@@ -1,11 +1,17 @@
 import os
-import telebot
+from flask import Flask
+from threading import Thread
 
-TOKEN = os.getenv('TELEGRAM_TOKEN')
-bot = telebot.TeleBot(TOKEN)
+app = Flask(__name__)
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Atlas Core AI sistemine hoş geldin. Emlak ve yatırım analizlerine başlamak için hazır.")
+@app.route('/')
+def home():
+    return "Bot aktif!"
 
-bot.polling()
+def run():
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# Botunun asıl kodundan önce sunucuyu başlat
+t = Thread(target=run)
+t.start()
