@@ -1,17 +1,23 @@
 import os
-from flask import Flask
-from threading import Thread
+import telebot
+from flask import Flask, request
 
+# TOKEN değişkenini Render'daki Environment Variables kısmından çekiyoruz
+TOKEN = os.environ.get('API_TOKEN')
+bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return "Bot aktif!"
+# Atlas_Core_Al botu için webhook rotası
+@app.route('/' + TOKEN, methods=['POST'])
+def webhook():
+    update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
+    bot.process_new_updates([update])
+    return 'ok', 200
 
-def run():
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
-
-# Botunun asıl kodundan önce sunucuyu başlat
-t = Thread(target=run)
-t.start()
+if __name__ == "__main__":
+    # Önceki webhook'u temizle ve yenisini kur
+    bot.remove_webhook()
+    bot.set_webhook(url='https://atlas-core-ai.onrender.com/' + TOKEN)
+    
+    # Sunucuyu başlat
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
